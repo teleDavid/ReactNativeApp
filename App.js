@@ -48,7 +48,7 @@ import React, { useState } from "javascriptv3/example_code/reactnative/App";
 	      setErrorMsg(e);
 	    }
 	  };
-	
+	//jgiug
 	  return (
 	    <View style={styles.container}>
 	      <Text style={{ color: "green" }}>
