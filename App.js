@@ -1,112 +1,91 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
-import React from 'react';
-import type {Node} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-const Section = ({children, title}): Node => {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-};
-
-const App: () => Node = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.js</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
-export default App;
+import React, { useState } from "javascriptv3/example_code/reactnative/App";
+	import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+	
+	import {
+	  S3Client,
+	  CreateBucketCommand,
+	  DeleteBucketCommand,
+	} from "@aws-sdk/client-s3";
+	import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
+	import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
+	
+	const App = () => {
+	  const [bucketName, setBucketName] = useState("");
+	  const [successMsg, setSuccessMsg] = useState("");
+	  const [errorMsg, setErrorMsg] = useState("");
+	
+	  // Replace REGION with the appropriate AWS Region, such as 'us-east-1'.
+	  const region = "REGION";
+	  const client = new S3Client({
+	    region,
+	    credentials: fromCognitoIdentityPool({
+	      client: new CognitoIdentityClient({ region }),
+	      // Replace IDENTITY_POOL_ID with an appropriate Amazon Cognito Identity Pool ID for, such as 'us-east-1:xxxxxx-xxx-4103-9936-b52exxxxfd6'.
+	      identityPoolId: "IDENTITY_POOL_ID",
+	    }),
+	  });
+	
+	  const createBucket = async () => {
+	    setSuccessMsg("");
+	    setErrorMsg("");
+	
+	    try {
+	      await client.send(new CreateBucketCommand({ Bucket: bucketName }));
+	      setSuccessMsg(`Bucket "${bucketName}" created.`);
+	    } catch (e) {
+	      setErrorMsg(e);
+	    }
+	  };
+	
+	  const deleteBucket = async () => {
+	    setSuccessMsg("");
+	    setErrorMsg("");
+	
+	    try {
+	      await client.send(new DeleteBucketCommand({ Bucket: bucketName }));
+	      setSuccessMsg(`Bucket "${bucketName}" deleted.`);
+	    } catch (e) {
+	      setErrorMsg(e);
+	    }
+	  };
+	
+	  return (
+	    <View style={styles.container}>
+	      <Text style={{ color: "green" }}>
+	        {successMsg ? `Success: ${successMsg}` : ``}
+	      </Text>
+	      <Text style={{ color: "red" }}>
+	        {errorMsg ? `Error: ${errorMsg}` : ``}
+	      </Text>
+	      <View>
+	        <TextInput
+	          style={styles.textInput}
+	          onChangeText={(text) => setBucketName(text)}
+	          autoCapitalize={"none"}
+	          value={bucketName}
+	          placeholder={"Enter Bucket Name"}
+	        />
+	        <Button
+	          backroundColor="#68a0cf"
+	          title="Create Bucket"
+	          onPress={createBucket}
+	        />
+	        <Button
+	          backroundColor="#68a0cf"
+	          title="Delete Bucket"
+	          onPress={deleteBucket}
+	        />
+	      </View>
+	    </View>
+	  );
+	};
+	
+	const styles = StyleSheet.create({
+	  container: {
+	    flex: 1,
+	    alignItems: "center",
+	    justifyContent: "center",
+	  },
+	});
+	
+	export default App;
